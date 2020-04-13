@@ -4,9 +4,6 @@ use rand::{
     Rng,
 };
 
-pub const SIGMOID: fn(f32) -> f32 = |x| 1.0 / (1.0 + (-x).exp());
-pub const RELU: fn(f32) -> f32 = |x| x.max(0.0);
-
 pub struct NeuralNet {
     layers: Vec<Layer>,
     weights: Vec<DMatrix<f64>>,
@@ -61,6 +58,13 @@ impl Layer {
     }
 }
 
+pub fn sigmoid(x: f64) -> f64 {
+    1.0 / (1.0 + (-x).exp())
+}
+
+pub fn relu(x: f64) -> f64 {
+    x.max(0.0)
+}
 
 fn gen_random_matrix(rows: usize, cols: usize, rng: &mut impl Rng) -> DMatrix<f64> {
     let elements = rows * cols;
