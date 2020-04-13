@@ -44,13 +44,13 @@ impl NeuralNet {
     }
 }
 
-pub struct Layer {
-    pub node_count: usize,
-    pub value: DMatrix<f64>,
+struct Layer {
+    node_count: usize,
+    value: DMatrix<f64>,
 }
 
 impl Layer {
-    pub fn new(node_count: usize) -> Self {
+    fn new(node_count: usize) -> Self {
         Self {
             node_count,
             value: DMatrix::zeros(node_count, 1),
