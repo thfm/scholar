@@ -1,0 +1,12 @@
+[package]
+name = "neural-net"
+version = "0.1.0"
+authors = ["Thomas Freeman <tomclaudefreeman@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+derive-new = "0.5"
+nalgebra = "0.21"
+rand = "0.7"
