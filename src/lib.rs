@@ -26,7 +26,7 @@ impl NeuralNet {
         }
     }
 
-    pub fn feedforward(&mut self, inputs: Vec<f64>) -> Vec<f64> {
+    pub fn guess(&mut self, inputs: Vec<f64>) -> Vec<f64> {
         let num_layers = self.layers.len();
         self.layers[0].value = DMatrix::from_row_slice(self.layers[0].node_count, 1, &inputs);
 
