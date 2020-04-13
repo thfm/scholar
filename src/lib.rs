@@ -5,6 +5,7 @@ use rand::{
 };
 
 pub const SIGMOID: fn(f32) -> f32 = |x| 1.0 / (1.0 + (-x).exp());
+pub const RELU: fn(f32) -> f32 = |x| x.max(0.0);
 
 pub struct NeuralNet {
     layers: Vec<Layer>,
