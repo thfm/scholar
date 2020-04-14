@@ -12,15 +12,22 @@ pub struct NeuralNet {
 }
 
 impl NeuralNet {
-    // TODO: Add check to see if more than 1 layer was supplied
     pub fn new(node_counts: Vec<usize>, activation: fn(f64) -> f64) -> Self {
+        let num_layers = node_counts.len();
+        if num_layers < 2 {
+            panic!(
+                "not enough layers supplied (expected at least 2, found {})",
+                num_layers
+            );
+        }
+
         let mut rng = rand::thread_rng();
         Self {
             layers: node_counts.iter().map(|c| DMatrix::zeros(*c, 1)).collect(),
-            weights: (0..node_counts.len() - 1)
-                .map(|i| gen_random_matrix(node_counts[i + 1], node_counts[i], &mut rng))
+            weights: (1..num_layers)
+                .map(|i| gen_random_matrix(node_counts[i], node_counts[i - 1], &mut rng))
                 .collect(),
-            biases: (1..node_counts.len())
+            biases: (1..num_layers)
                 .map(|i| gen_random_matrix(node_counts[i], 1, &mut rng))
                 .collect(),
             activation,
