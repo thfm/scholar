@@ -29,11 +29,18 @@ impl NeuralNet {
 
     // pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>) {}
 
-    // TODO: Check if the inputs length does not match up with the amount of rows
-    // in the input layer DMatrix
     pub fn guess(&mut self, inputs: Vec<f64>) -> Vec<f64> {
+        let num_inputs = inputs.len();
+        let num_input_layer_rows = self.layers[0].row_iter().len();
+        if num_inputs != num_input_layer_rows {
+            panic!(
+                "incorrect number of inputs supplied (expected {}, found {})",
+                num_input_layer_rows, num_inputs
+            );
+        }
+
         let num_layers = self.layers.len();
-        self.layers[0] = DMatrix::from_row_slice(inputs.len(), 1, &inputs);
+        self.layers[0] = DMatrix::from_row_slice(num_inputs, 1, &inputs);
 
         for i in 1..num_layers {
             let mut value = &self.weights[i - 1] * &self.layers[i - 1];
