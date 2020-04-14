@@ -1,10 +1,12 @@
+type Data = Vec<(Vec<f64>, Vec<f64>)>;
+
 #[derive(Debug)]
 pub struct Dataset {
-    data: Vec<(Vec<f64>, Vec<f64>)>,
+    data: Data,
 }
 
-impl Dataset {
-    pub fn new(data: Vec<(Vec<f64>, Vec<f64>)>) -> Self {
+impl From<Data> for Dataset {
+    fn from(data: Data) -> Self {
         Self { data }
     }
 }
