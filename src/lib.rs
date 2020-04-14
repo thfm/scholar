@@ -5,7 +5,7 @@ use rand::{
 };
 
 pub struct NeuralNet {
-    layers: Vec<Layer>,
+    layers: Vec<DMatrix<f64>>,
     weights: Vec<DMatrix<f64>>,
     biases: Vec<DMatrix<f64>>,
     activation: fn(f64) -> f64,
@@ -15,7 +15,7 @@ impl NeuralNet {
     // TODO: Add check to see if more than 1 layer was supplied
     pub fn new(node_counts: Vec<usize>, activation: fn(f64) -> f64, rng: &mut impl Rng) -> Self {
         Self {
-            layers: node_counts.iter().map(|c| Layer::new(*c)).collect(),
+            layers: node_counts.iter().map(|c| DMatrix::zeros(*c, 1)).collect(),
             weights: (0..node_counts.len() - 1)
                 .map(|i| gen_random_matrix(node_counts[i + 1], node_counts[i], rng))
                 .collect(),
@@ -26,36 +26,29 @@ impl NeuralNet {
         }
     }
 
+    // pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>) {}
+
+    // TODO: Check if the inputs length does not match up with the amount of rows
+    // in the input layer DMatrix
     pub fn guess(&mut self, inputs: Vec<f64>) -> Vec<f64> {
         let num_layers = self.layers.len();
-        self.layers[0].value = DMatrix::from_row_slice(self.layers[0].node_count, 1, &inputs);
+        self.layers[0] = DMatrix::from_row_slice(inputs.len(), 1, &inputs);
 
         for i in 1..num_layers {
-            let mut value = &self.weights[i - 1] * &self.layers[i - 1].value + &self.biases[i - 1];
+            let mut value = &self.weights[i - 1] * &self.layers[i - 1];
+            value += &self.biases[i - 1];
 
             for x in value.iter_mut() {
                 *x = (self.activation)(*x);
             }
 
-            self.layers[i].value = value;
+            self.layers[i] = value;
         }
 
-        self.layers[num_layers - 1].value.iter().cloned().collect()
+        self.layers[num_layers - 1].iter().cloned().collect()
     }
-}
 
-struct Layer {
-    node_count: usize,
-    value: DMatrix<f64>,
-}
-
-impl Layer {
-    fn new(node_count: usize) -> Self {
-        Self {
-            node_count,
-            value: DMatrix::zeros(node_count, 1),
-        }
-    }
+    fn backpropagate(&mut self, guess: Vec<f64>, target: Vec<f64>) {}
 }
 
 pub fn sigmoid(x: f64) -> f64 {
