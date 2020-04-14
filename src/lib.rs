@@ -1,8 +1,5 @@
 use nalgebra::DMatrix;
-use rand::{
-    distributions::{Distribution, Uniform},
-    rngs::ThreadRng,
-};
+use rand::distributions::{Distribution, Uniform};
 
 pub struct NeuralNet {
     layers: Vec<DMatrix<f64>>,
@@ -14,14 +11,13 @@ pub struct NeuralNet {
 impl NeuralNet {
     // TODO: Add check to see if more than 1 layer was supplied
     pub fn new(node_counts: Vec<usize>, activation: fn(f64) -> f64) -> Self {
-        let mut rng = rand::thread_rng();
         Self {
             layers: node_counts.iter().map(|c| DMatrix::zeros(*c, 1)).collect(),
             weights: (0..node_counts.len() - 1)
-                .map(|i| gen_random_matrix(node_counts[i + 1], node_counts[i], &mut rng))
+                .map(|i| gen_random_matrix(node_counts[i + 1], node_counts[i]))
                 .collect(),
             biases: (1..node_counts.len())
-                .map(|i| gen_random_matrix(node_counts[i], 1, &mut rng))
+                .map(|i| gen_random_matrix(node_counts[i], 1))
                 .collect(),
             activation,
         }
@@ -60,8 +56,9 @@ pub fn relu(x: f64) -> f64 {
     x.max(0.0)
 }
 
-fn gen_random_matrix(rows: usize, cols: usize, rng: &mut ThreadRng) -> DMatrix<f64> {
+fn gen_random_matrix(rows: usize, cols: usize) -> DMatrix<f64> {
+    let mut rng = rand::thread_rng();
     let elements = rows * cols;
     let range = Uniform::new_inclusive(-1.0, 1.0);
-    DMatrix::from_iterator(rows, cols, (0..elements).map(|_| range.sample(rng)))
+    DMatrix::from_iterator(rows, cols, (0..elements).map(|_| range.sample(&mut rng)))
 }
