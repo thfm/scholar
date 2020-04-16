@@ -43,9 +43,11 @@ impl NeuralNet {
         }
     }
 
-    pub fn learn(&mut self, dataset: &Dataset, iterations: usize, learning_rate: f64) {
+    pub fn learn(&mut self, mut dataset: Dataset, iterations: usize, learning_rate: f64) {
+        let mut rng = rand::thread_rng();
         for _ in 1..iterations {
-            for (inputs, targets) in dataset {
+            dataset.shuffle(&mut rng);
+            for (inputs, targets) in &dataset {
                 let guesses = self.guess(inputs);
                 self.backpropagate(&guesses, targets, learning_rate);
             }
@@ -103,13 +105,13 @@ impl NeuralNet {
     }
 }
 
+// TODO: Derivative function assumes that the original function
+// has already been applied
 pub struct Activation {
     pub function: fn(f64) -> f64,
     pub derivative: fn(f64) -> f64,
 }
 
-// TODO: Derivative function assumes that the original function
-// has already been applied
 pub const SIGMOID: Activation = Activation {
     function: |x| 1.0 / (1.0 + (-x).exp()),
     derivative: |x| x * (1.0 - x),
