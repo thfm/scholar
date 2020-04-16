@@ -60,6 +60,11 @@ pub enum ParseCsvError {
     Convert(#[from] std::num::ParseFloatError),
 }
 
+impl From<Data> for Dataset {
+    fn from(data: Data) -> Self {
+        Self { data }
+    }
+}
 
 impl<'a> IntoIterator for &'a Dataset {
     type Item = &'a Row;
