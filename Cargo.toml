@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 csv = "1"
 derive-new = "0.5"
+indicatif = "0.14"
 nalgebra = "0.21"
 rand = "0.7"
 thiserror = "1"

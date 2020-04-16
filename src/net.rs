@@ -43,15 +43,30 @@ impl NeuralNet {
         }
     }
 
-    pub fn learn(&mut self, mut dataset: Dataset, iterations: usize, learning_rate: f64) {
+    pub fn learn(&mut self, mut dataset: Dataset, iterations: u64, learning_rate: f64) {
         let mut rng = rand::thread_rng();
-        for _ in 1..iterations {
+
+        let progress_bar = indicatif::ProgressBar::new(iterations);
+        progress_bar.set_style(
+            indicatif::ProgressStyle::default_bar()
+                .template("Training [{bar:30}] {percent:>3}% ETA: {eta}")
+                .progress_chars("=> "),
+        );
+        let percentile = iterations / 100;
+
+        for i in 1..iterations {
             dataset.shuffle(&mut rng);
             for (inputs, targets) in &dataset {
                 let guesses = self.guess(inputs);
                 self.backpropagate(&guesses, targets, learning_rate);
             }
+
+            if i % percentile == 0 {
+                progress_bar.inc(percentile);
+            }
         }
+
+        progress_bar.finish_and_clear();
     }
 
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
