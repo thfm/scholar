@@ -8,11 +8,11 @@ pub struct NeuralNet {
     layers: Vec<DMatrix<f64>>,
     weights: Vec<DMatrix<f64>>,
     biases: Vec<DMatrix<f64>>,
-    activation: fn(f64) -> f64,
+    activation: Activation,
 }
 
 impl NeuralNet {
-    pub fn new(node_counts: Vec<usize>, activation: fn(f64) -> f64) -> Self {
+    pub fn new(node_counts: &[usize], activation: Activation) -> Self {
         let num_layers = node_counts.len();
         if num_layers < 2 {
             panic!(
@@ -54,7 +54,7 @@ impl NeuralNet {
             value += &self.biases[i - 1];
 
             for x in value.iter_mut() {
-                *x = (self.activation)(*x);
+                *x = (self.activation.function)(*x);
             }
 
             self.layers[i] = value;
@@ -66,13 +66,17 @@ impl NeuralNet {
     fn backpropagate(&mut self, guess: Vec<f64>, target: Vec<f64>) {}
 }
 
-pub fn sigmoid(x: f64) -> f64 {
-    1.0 / (1.0 + (-x).exp())
+pub struct Activation {
+    pub function: fn(f64) -> f64,
+    pub derivative: fn(f64) -> f64,
 }
 
-pub fn relu(x: f64) -> f64 {
-    x.max(0.0)
-}
+// TODO: Derivative function assumes that the original function
+// has already been applied
+pub const SIGMOID: Activation = Activation {
+    function: |x| 1.0 / (1.0 + (-x).exp()),
+    derivative: |x| x * (1.0 - x),
+};
 
 fn gen_random_matrix(rows: usize, cols: usize, rng: &mut impl Rng) -> DMatrix<f64> {
     let elements = rows * cols;
