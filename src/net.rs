@@ -8,6 +8,7 @@ pub struct NeuralNet {
     layers: Vec<DMatrix<f64>>,
     weights: Vec<DMatrix<f64>>,
     biases: Vec<DMatrix<f64>>,
+    errors: Vec<DMatrix<f64>>,
     activation: Activation,
 }
 
@@ -27,8 +28,15 @@ impl NeuralNet {
             weights: (1..num_layers)
                 .map(|i| gen_random_matrix(node_counts[i], node_counts[i - 1], &mut rng))
                 .collect(),
-            biases: (1..num_layers)
-                .map(|i| gen_random_matrix(node_counts[i], 1, &mut rng))
+            biases: node_counts
+                .iter()
+                .skip(1)
+                .map(|c| gen_random_matrix(*c, 1, &mut rng))
+                .collect(),
+            errors: node_counts
+                .iter()
+                .skip(1)
+                .map(|c| DMatrix::zeros(*c, 1))
                 .collect(),
             activation,
         }
