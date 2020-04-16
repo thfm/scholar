@@ -41,6 +41,9 @@ impl Dataset {
         Ok(Dataset::from(data?))
     }
 
+    pub fn rows(&self) -> usize {
+        self.data.len()
+    }
 
     pub(crate) fn shuffle(&mut self, rng: &mut impl rand::Rng) {
         self.data.shuffle(rng);
