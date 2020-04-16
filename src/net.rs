@@ -1,3 +1,4 @@
+use crate::dataset::Dataset;
 use nalgebra::DMatrix;
 use rand::{
     distributions::{Distribution, Uniform},
@@ -42,7 +43,14 @@ impl NeuralNet {
         }
     }
 
-    // pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>) {}
+    pub fn learn(&mut self, dataset: &Dataset, iterations: usize, learning_rate: f64) {
+        for _ in 1..iterations {
+            for (inputs, targets) in dataset {
+                let guesses = self.guess(inputs);
+                self.backpropagate(&guesses, targets, learning_rate);
+            }
+        }
+    }
 
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
@@ -71,7 +79,28 @@ impl NeuralNet {
         self.layers[num_layers - 1].iter().cloned().collect()
     }
 
-    fn backpropagate(&mut self, guess: Vec<f64>, target: Vec<f64>) {}
+    fn backpropagate(&mut self, guesses: &[f64], targets: &[f64], learning_rate: f64) {
+        let guesses = convert_slice_to_matrix(guesses);
+        let targets = convert_slice_to_matrix(targets);
+
+        let num_layers = self.layers.len();
+        self.errors[num_layers - 2] = targets - guesses;
+
+        for (i, layer) in self.layers.iter().enumerate().skip(1).rev() {
+            let mut gradients = layer.map(self.activation.derivative);
+            gradients.component_mul_assign(&self.errors[i - 1]);
+            gradients *= learning_rate;
+
+            let deltas = &gradients * self.layers[i - 1].transpose();
+            self.weights[i - 1] += deltas;
+
+            self.biases[i - 1] += gradients;
+
+            if i != 1 {
+                self.errors[i - 2] = self.weights[i - 1].transpose() * &self.errors[i - 1];
+            }
+        }
+    }
 }
 
 pub struct Activation {
