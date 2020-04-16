@@ -1,15 +1,11 @@
+use rand::seq::SliceRandom;
+
 type Row = (Vec<f64>, Vec<f64>);
 type Data = Vec<Row>;
 
 #[derive(Debug)]
 pub struct Dataset {
     data: Data,
-}
-
-impl From<Data> for Dataset {
-    fn from(data: Data) -> Self {
-        Self { data }
-    }
 }
 
 impl Dataset {
@@ -45,9 +41,13 @@ impl Dataset {
         Ok(Dataset::from(data?))
     }
 
+    pub(crate) fn shuffle<R: rand::Rng>(&mut self, rng: &mut R) {
+        self.data.shuffle(rng);
+    }
+
     fn get(&self, index: usize) -> Option<&Row> {
         self.data.get(index)
-}
+    }
 }
 
 #[derive(thiserror::Error, Debug)]
