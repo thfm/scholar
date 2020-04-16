@@ -1,4 +1,5 @@
-type Data = Vec<(Vec<f64>, Vec<f64>)>;
+type Row = (Vec<f64>, Vec<f64>);
+type Data = Vec<Row>;
 
 #[derive(Debug)]
 pub struct Dataset {
@@ -43,6 +44,10 @@ impl Dataset {
             .collect();
         Ok(Dataset::from(data?))
     }
+
+    fn get(&self, index: usize) -> Option<&Row> {
+        self.data.get(index)
+}
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -53,4 +58,31 @@ pub enum ParseCsvError {
     Parse(#[from] csv::Error),
     #[error("failed to convert value into float")]
     Convert(#[from] std::num::ParseFloatError),
+}
+
+
+impl<'a> IntoIterator for &'a Dataset {
+    type Item = &'a Row;
+    type IntoIter = DatasetIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        DatasetIterator {
+            dataset: self,
+            index: 0,
+        }
+    }
+}
+
+pub struct DatasetIterator<'a> {
+    dataset: &'a Dataset,
+    index: usize,
+}
+
+impl<'a> Iterator for DatasetIterator<'a> {
+    type Item = &'a Row;
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.dataset.get(self.index);
+        self.index += 1;
+        result
+    }
 }
