@@ -69,6 +69,22 @@ impl NeuralNet {
         progress_bar.finish_and_clear();
     }
 
+    pub fn test(&mut self, testing_dataset: Dataset) -> f64 {
+        let mut avg_cost = 0.0;
+        for (inputs, targets) in &testing_dataset {
+            let guesses = self.guess(inputs);
+            let cost_sum: f64 = guesses
+                .iter()
+                .zip(targets)
+                .map(|(i, t)| (t - i).abs())
+                .sum();
+            avg_cost += cost_sum / guesses.len() as f64;
+        }
+        avg_cost /= testing_dataset.rows() as f64;
+
+        avg_cost
+    }
+
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
         let num_input_layer_rows = self.layers[0].row_iter().len();
