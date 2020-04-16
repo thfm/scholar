@@ -36,7 +36,7 @@ impl NeuralNet {
 
     // pub fn train(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>) {}
 
-    pub fn guess(&mut self, inputs: Vec<f64>) -> Vec<f64> {
+    pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
         let num_input_layer_rows = self.layers[0].row_iter().len();
         if num_inputs != num_input_layer_rows {
@@ -47,7 +47,7 @@ impl NeuralNet {
         }
 
         let num_layers = self.layers.len();
-        self.layers[0] = DMatrix::from_row_slice(num_inputs, 1, &inputs);
+        self.layers[0] = convert_slice_to_matrix(inputs);
 
         for i in 1..num_layers {
             let mut value = &self.weights[i - 1] * &self.layers[i - 1];
@@ -82,4 +82,8 @@ fn gen_random_matrix(rows: usize, cols: usize, rng: &mut impl Rng) -> DMatrix<f6
     let elements = rows * cols;
     let range = Uniform::new_inclusive(-1.0, 1.0);
     DMatrix::from_iterator(rows, cols, (0..elements).map(|_| range.sample(rng)))
+}
+
+fn convert_slice_to_matrix(slice: &[f64]) -> DMatrix<f64> {
+    DMatrix::from_row_slice(slice.len(), 1, slice)
 }
