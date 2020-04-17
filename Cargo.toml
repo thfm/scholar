@@ -1,5 +1,5 @@
 [package]
-name = "neural-net"
+name = "scholar"
 version = "0.1.0"
 authors = ["Thomas Freeman <tomclaudefreeman@gmail.com>"]
 edition = "2018"
@@ -13,3 +13,6 @@ indicatif = "0.14"
 nalgebra = "0.21"
 rand = "0.7"
 thiserror = "1"
+
+[dev-dependencies]
+anyhow = "1"
