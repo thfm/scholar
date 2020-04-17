@@ -1,9 +1,6 @@
 use crate::dataset::Dataset;
+use crate::utils::{convert_slice_to_matrix, gen_random_matrix};
 use nalgebra::DMatrix;
-use rand::{
-    distributions::{Distribution, Uniform},
-    Rng,
-};
 
 pub struct NeuralNet {
     layers: Vec<DMatrix<f64>>,
@@ -23,16 +20,15 @@ impl NeuralNet {
             );
         }
 
-        let mut rng = rand::thread_rng();
         Self {
             layers: node_counts.iter().map(|c| DMatrix::zeros(*c, 1)).collect(),
             weights: (1..num_layers)
-                .map(|i| gen_random_matrix(node_counts[i], node_counts[i - 1], &mut rng))
+                .map(|i| gen_random_matrix(node_counts[i], node_counts[i - 1]))
                 .collect(),
             biases: node_counts
                 .iter()
                 .skip(1)
-                .map(|c| gen_random_matrix(*c, 1, &mut rng))
+                .map(|c| gen_random_matrix(*c, 1))
                 .collect(),
             errors: node_counts
                 .iter()
@@ -145,13 +141,3 @@ pub const SIGMOID: Activation = Activation {
     function: |x| 1.0 / (1.0 + (-x).exp()),
     derivative: |x| x * (1.0 - x),
 };
-
-fn gen_random_matrix(rows: usize, cols: usize, rng: &mut impl Rng) -> DMatrix<f64> {
-    let elements = rows * cols;
-    let range = Uniform::new_inclusive(-1.0, 1.0);
-    DMatrix::from_iterator(rows, cols, (0..elements).map(|_| range.sample(rng)))
-}
-
-fn convert_slice_to_matrix(slice: &[f64]) -> DMatrix<f64> {
-    DMatrix::from_row_slice(slice.len(), 1, slice)
-}
