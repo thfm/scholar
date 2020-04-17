@@ -198,13 +198,17 @@ impl NeuralNet {
     }
 }
 
-// TODO: Derivative function assumes that the original function
-// has already been applied
+/// An activation for a network, including a function and a 'derivative' function.
+///
+/// Note that the 'derivative' assumes that the original function
+/// has already been applied to it's input (as this is always the case when
+/// used in the context of neural networks).
 pub struct Activation {
     pub function: fn(f64) -> f64,
     pub derivative: fn(f64) -> f64,
 }
 
+/// The sigmoid activation.
 pub const SIGMOID: Activation = Activation {
     function: |x| 1.0 / (1.0 + (-x).exp()),
     derivative: |x| x * (1.0 - x),
