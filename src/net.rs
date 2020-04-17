@@ -44,8 +44,6 @@ impl NeuralNet {
     }
 
     pub fn train(&mut self, mut training_dataset: Dataset, iterations: u64, learning_rate: f64) {
-        let mut rng = rand::thread_rng();
-
         let progress_bar = indicatif::ProgressBar::new(iterations);
         progress_bar.set_style(
             indicatif::ProgressStyle::default_bar()
@@ -55,7 +53,7 @@ impl NeuralNet {
         let percentile = iterations / 100;
 
         for i in 1..iterations {
-            training_dataset.shuffle(&mut rng);
+            training_dataset.shuffle();
             for (inputs, targets) in &training_dataset {
                 let guesses = self.guess(inputs);
                 self.backpropagate(&guesses, targets, learning_rate);

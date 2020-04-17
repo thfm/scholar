@@ -45,11 +45,11 @@ impl Dataset {
         self.data.len()
     }
 
-    pub(crate) fn shuffle(&mut self, rng: &mut impl rand::Rng) {
-        self.data.shuffle(rng);
+    pub(crate) fn shuffle(&mut self) {
+        self.data.shuffle(&mut rand::thread_rng());
     }
 
-    pub fn split(mut self, train_portion: f64, rng: &mut impl rand::Rng) -> (Self, Self) {
+    pub fn split(mut self, train_portion: f64) -> (Self, Self) {
         if train_portion > 1.0 || train_portion < 0.0 {
             panic!(
                 "training portion must be between 0 and 1 (found {})",
@@ -57,7 +57,7 @@ impl Dataset {
             );
         }
 
-        self.shuffle(rng);
+        self.shuffle();
 
         let index = self.data.len() as f64 * train_portion;
         let test_split = self.data.split_off(index.round() as usize);
