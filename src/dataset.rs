@@ -3,12 +3,21 @@ use rand::seq::SliceRandom;
 type Row = (Vec<f64>, Vec<f64>);
 type Data = Vec<Row>;
 
+/// A collection of input vectors matched with their expected output.
 #[derive(Debug)]
 pub struct Dataset {
     data: Data,
 }
 
 impl Dataset {
+    /// Parses a dataset from a CSV file.
+    ///
+    /// # Examples
+    /// ```rust
+    /// // Parses the first four columns of 'iris.csv' as inputs,
+    /// // and the remaining columns as target outputs
+    /// let dataset = neural_net::dataset::Dataset::from_csv("iris.csv", false, 4);
+    /// ```
     pub fn from_csv(
         file_path: impl AsRef<std::path::Path>,
         includes_headers: bool,
@@ -41,14 +50,47 @@ impl Dataset {
         Ok(Dataset::from(data?))
     }
 
+    /// Returns the number of rows in the dataset.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// // Data for the XOR problem
+    /// let data = vec![
+    ///     (vec![0.0, 0.0], vec![0.0]),
+    ///     (vec![0.0, 1.0], vec![1.0]),
+    ///     (vec![1.0, 0.0], vec![1.0]),
+    ///     (vec![1.0, 1.0], vec![0.0]),
+    /// ];
+    ///
+    /// let dataset = neural_net::dataset::Dataset::from(data);
+    /// assert_eq!(dataset.rows(), 4);
+    /// ```
     pub fn rows(&self) -> usize {
         self.data.len()
     }
 
+    /// Shuffles the rows in the dataset.
     pub(crate) fn shuffle(&mut self) {
         self.data.shuffle(&mut rand::thread_rng());
     }
 
+    /// Splits the dataset into two, with the size of each determined by
+    /// the given `train_portion`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let dataset = neural_net::dataset::Dataset::from_csv("iris.csv", false, 4);
+    ///
+    /// // Randomly allocates 75% of the original dataset to 'training_data',
+    /// // and the rest to 'testing_data'
+    /// let (training_data, testing_data) = dataset.split(0.75);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the given `train_portion` isn't between 0 and 1.
     pub fn split(mut self, train_portion: f64) -> (Self, Self) {
         if train_portion > 1.0 || train_portion < 0.0 {
             panic!(
@@ -65,11 +107,13 @@ impl Dataset {
         (self, Self::from(test_split))
     }
 
+    /// Returns a reference to the row at the specified index.
     fn get(&self, index: usize) -> Option<&Row> {
         self.data.get(index)
     }
 }
 
+/// A collection of the possible errors when parsing a dataset from a CSV.
 #[derive(thiserror::Error, Debug)]
 pub enum ParseCsvError {
     #[error("failed to read file")]
@@ -98,6 +142,7 @@ impl<'a> IntoIterator for &'a Dataset {
     }
 }
 
+/// An iterator over a `Dataset`.
 pub struct DatasetIterator<'a> {
     dataset: &'a Dataset,
     index: usize,
