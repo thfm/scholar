@@ -1,17 +1,19 @@
 use crate::dataset::Dataset;
 use crate::utils::{convert_slice_to_matrix, gen_random_matrix};
 use nalgebra::DMatrix;
+use serde::{Deserialize, Serialize};
 
 /// A fully-connected neural network.
-pub struct NeuralNet {
+#[derive(Serialize, Deserialize)]
+pub struct NeuralNet<A: Activation> {
     layers: Vec<DMatrix<f64>>,
     weights: Vec<DMatrix<f64>>,
     biases: Vec<DMatrix<f64>>,
     errors: Vec<DMatrix<f64>>,
-    activation: Activation,
+    activation: A,
 }
 
-impl NeuralNet {
+impl<A: Activation + Serialize> NeuralNet<A> {
     /// Creates a new network with the given node configuration and activation.
     ///
     /// # Examples
@@ -29,7 +31,7 @@ impl NeuralNet {
     /// This function panics if the number of layers
     /// (i.e. the length of the given `node_counts` slice)
     /// is less than 2.
-    pub fn new(node_counts: &[usize], activation: Activation) -> Self {
+    pub fn new(node_counts: &[usize], activation: A) -> Self {
         let num_layers = node_counts.len();
         if num_layers < 2 {
             panic!(
@@ -163,7 +165,7 @@ impl NeuralNet {
             value += &self.biases[i - 1];
 
             for x in value.iter_mut() {
-                *x = (self.activation.function)(*x);
+                *x = A::activate(*x);
             }
 
             self.layers[i] = value;
@@ -182,7 +184,7 @@ impl NeuralNet {
         self.errors[num_layers - 2] = targets - guesses;
 
         for (i, layer) in self.layers.iter().enumerate().skip(1).rev() {
-            let mut gradients = layer.map(self.activation.derivative);
+            let mut gradients = layer.map(A::derivative);
             gradients.component_mul_assign(&self.errors[i - 1]);
             gradients *= learning_rate;
 
@@ -200,16 +202,23 @@ impl NeuralNet {
 
 /// An activation for a network, including a function and a 'derivative' function.
 ///
-/// Note that the 'derivative' assumes that the original function
+/// Note that the 'derivative' function assumes that the original function
 /// has already been applied to it's input (as this is always the case when
 /// used in the context of neural networks).
-pub struct Activation {
-    pub function: fn(f64) -> f64,
-    pub derivative: fn(f64) -> f64,
+pub trait Activation {
+    fn activate(x: f64) -> f64;
+    fn derivative(x: f64) -> f64;
 }
 
-/// The sigmoid activation.
-pub const SIGMOID: Activation = Activation {
-    function: |x| 1.0 / (1.0 + (-x).exp()),
-    derivative: |x| x * (1.0 - x),
-};
+#[derive(Serialize, Deserialize)]
+pub struct Sigmoid;
+
+impl Activation for Sigmoid {
+    fn activate(x: f64) -> f64 {
+        1.0 / (1.0 + (-x).exp())
+    }
+
+    fn derivative(x: f64) -> f64 {
+        x * (1.0 - x)
+    }
+}
