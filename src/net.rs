@@ -17,7 +17,7 @@ impl NeuralNet {
     /// # Examples
     ///
     /// ```rust
-    /// use neural_net::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, SIGMOID};
     ///
     /// // Creates a neural network with two input nodes,
     /// // a single hidden layer with two nodes, and one output node
@@ -62,8 +62,8 @@ impl NeuralNet {
     /// # Examples
     ///
     /// ```rust
-    /// use neural_net::dataset::Dataset;
-    /// use neural_net::net::{NeuralNet, SIGMOID};
+    /// use scholar::dataset::Dataset;
+    /// use scholar::net::{NeuralNet, SIGMOID};
     ///
     /// let dataset = Dataset::from_csv("iris.csv", false, 4);
     ///
@@ -99,8 +99,8 @@ impl NeuralNet {
     /// # Examples
     ///
     /// ```rust
-    /// use neural_net::dataset::Dataset;
-    /// use neural_net::net::{NeuralNet, SIGMOID};
+    /// use scholar::dataset::Dataset;
+    /// use scholar::net::{NeuralNet, SIGMOID};
     ///
     /// let dataset = Dataset::from_csv("iris.csv", false, 4);
     /// let (training_data, testing_data) = dataset.split(0.75);
@@ -133,7 +133,7 @@ impl NeuralNet {
     /// # Examples
     ///
     /// ```rust
-    /// use neural_net::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, SIGMOID};
     ///
     /// let mut brain = NeuralNet::new(&[3, 10, 2], SIGMOID);
     /// let result = brain.guess(&[1.0, 0.0, -0.5]);
