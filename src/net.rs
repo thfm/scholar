@@ -2,6 +2,7 @@ use crate::dataset::Dataset;
 use crate::utils::{convert_slice_to_matrix, gen_random_matrix};
 use nalgebra::DMatrix;
 
+/// A fully-connected neural network.
 pub struct NeuralNet {
     layers: Vec<DMatrix<f64>>,
     weights: Vec<DMatrix<f64>>,
@@ -11,6 +12,23 @@ pub struct NeuralNet {
 }
 
 impl NeuralNet {
+    /// Creates a new network with the given node configuration and activation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use neural_net::net::{NeuralNet, SIGMOID};
+    ///
+    /// // Creates a neural network with two input nodes,
+    /// // a single hidden layer with two nodes, and one output node
+    /// let brain = NeuralNet::new(&[2, 2, 1], SIGMOID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This function panics if the number of layers
+    /// (i.e. the length of the given `node_counts` slice)
+    /// is less than 2.
     pub fn new(node_counts: &[usize], activation: Activation) -> Self {
         let num_layers = node_counts.len();
         if num_layers < 2 {
@@ -39,6 +57,19 @@ impl NeuralNet {
         }
     }
 
+    /// Trains the network on the given dataset for the given number of iterations.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use neural_net::dataset::Dataset;
+    /// use neural_net::net::{NeuralNet, SIGMOID};
+    ///
+    /// let dataset = Dataset::from_csv("iris.csv", false, 4);
+    ///
+    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], SIGMOID);
+    /// brain.train(dataset, 10_000, 0.01);
+    /// ```
     pub fn train(&mut self, mut training_dataset: Dataset, iterations: u64, learning_rate: f64) {
         let progress_bar = indicatif::ProgressBar::new(iterations);
         progress_bar.set_style(
@@ -63,6 +94,23 @@ impl NeuralNet {
         progress_bar.finish_and_clear();
     }
 
+    /// Calculates the average cost of the network.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use neural_net::dataset::Dataset;
+    /// use neural_net::net::{NeuralNet, SIGMOID};
+    ///
+    /// let dataset = Dataset::from_csv("iris.csv", false, 4);
+    /// let (training_data, testing_data) = dataset.split(0.75);
+    ///
+    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], SIGMOID);
+    /// brain.train(training_data, 10_000, 0.01);
+    ///
+    /// let avg_cost = brain.test(testing_data);
+    /// println!("Accuracy: {:.2}%", (1.0 - avg_cost) * 100);
+    /// ```
     pub fn test(&mut self, testing_dataset: Dataset) -> f64 {
         let mut avg_cost = 0.0;
         for (inputs, targets) in &testing_dataset {
@@ -79,6 +127,24 @@ impl NeuralNet {
         avg_cost
     }
 
+    /// Performs the feedforward algorithm on the given input slice,
+    /// and returns the value of the output layer as a vector.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use neural_net::net::{NeuralNet, SIGMOID};
+    ///
+    /// let mut brain = NeuralNet::new(&[3, 10, 2], SIGMOID);
+    /// let result = brain.guess(&[1.0, 0.0, -0.5]);
+    ///
+    /// assert_eq!(result.len(), 2);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the number of given input values is not equal
+    /// to the number of nodes in the network's input layer.
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
         let num_input_layer_rows = self.layers[0].row_iter().len();
@@ -106,6 +172,8 @@ impl NeuralNet {
         self.layers[num_layers - 1].iter().cloned().collect()
     }
 
+    /// Performs the backpropagation algorithm using the network's guessed values
+    /// for a particular input, and the real target values.
     fn backpropagate(&mut self, guesses: &[f64], targets: &[f64], learning_rate: f64) {
         let guesses = convert_slice_to_matrix(guesses);
         let targets = convert_slice_to_matrix(targets);
