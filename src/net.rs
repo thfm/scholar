@@ -19,11 +19,11 @@ impl<A: Activation + Serialize> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, Sigmoid};
     ///
     /// // Creates a neural network with two input nodes,
     /// // a single hidden layer with two nodes, and one output node
-    /// let brain = NeuralNet::new(&[2, 2, 1], SIGMOID);
+    /// let brain = NeuralNet::new(&[2, 2, 1], Sigmoid);
     /// ```
     ///
     /// # Panics
@@ -65,11 +65,11 @@ impl<A: Activation + Serialize> NeuralNet<A> {
     ///
     /// ```rust
     /// use scholar::dataset::Dataset;
-    /// use scholar::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, Sigmoid};
     ///
     /// let dataset = Dataset::from_csv("iris.csv", false, 4);
     ///
-    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], SIGMOID);
+    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], Sigmoid);
     /// brain.train(dataset, 10_000, 0.01);
     /// ```
     pub fn train(&mut self, mut training_dataset: Dataset, iterations: u64, learning_rate: f64) {
@@ -102,12 +102,12 @@ impl<A: Activation + Serialize> NeuralNet<A> {
     ///
     /// ```rust
     /// use scholar::dataset::Dataset;
-    /// use scholar::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, Sigmoid};
     ///
     /// let dataset = Dataset::from_csv("iris.csv", false, 4);
     /// let (training_data, testing_data) = dataset.split(0.75);
     ///
-    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], SIGMOID);
+    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], Sigmoid);
     /// brain.train(training_data, 10_000, 0.01);
     ///
     /// let avg_cost = brain.test(testing_data);
@@ -135,9 +135,9 @@ impl<A: Activation + Serialize> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, SIGMOID};
+    /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// let mut brain = NeuralNet::new(&[3, 10, 2], SIGMOID);
+    /// let mut brain = NeuralNet::new(&[3, 10, 2], Sigmoid);
     /// let result = brain.guess(&[1.0, 0.0, -0.5]);
     ///
     /// assert_eq!(result.len(), 2);
