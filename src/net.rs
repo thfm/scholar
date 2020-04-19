@@ -1,7 +1,8 @@
 use crate::dataset::Dataset;
 use crate::utils::{convert_slice_to_matrix, gen_random_matrix};
 use nalgebra::DMatrix;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::{fs, marker::PhantomData, path::Path};
 
 /// A fully-connected neural network.
 #[derive(Serialize, Deserialize)]
@@ -10,10 +11,10 @@ pub struct NeuralNet<A: Activation> {
     weights: Vec<DMatrix<f64>>,
     biases: Vec<DMatrix<f64>>,
     errors: Vec<DMatrix<f64>>,
-    activation: A,
+    activation: PhantomData<A>,
 }
 
-impl<A: Activation + Serialize> NeuralNet<A> {
+impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// Creates a new network with the given node configuration and activation.
     ///
     /// # Examples
@@ -31,7 +32,7 @@ impl<A: Activation + Serialize> NeuralNet<A> {
     /// This function panics if the number of layers
     /// (i.e. the length of the given `node_counts` slice)
     /// is less than 2.
-    pub fn new(node_counts: &[usize], activation: A) -> Self {
+    pub fn new(node_counts: &[usize]) -> Self {
         let num_layers = node_counts.len();
         if num_layers < 2 {
             panic!(
@@ -55,8 +56,15 @@ impl<A: Activation + Serialize> NeuralNet<A> {
                 .skip(1)
                 .map(|c| DMatrix::zeros(*c, 1))
                 .collect(),
-            activation,
+            activation: PhantomData,
         }
+    }
+
+    pub fn from_file(path: impl AsRef<Path>) -> Result<Self, LoadErr> {
+        let file = fs::File::open(path)?;
+        let decoded: NeuralNet<A> = bincode::deserialize_from(file)?;
+
+        Ok(decoded)
     }
 
     /// Trains the network on the given dataset for the given number of iterations.
@@ -127,6 +135,13 @@ impl<A: Activation + Serialize> NeuralNet<A> {
         avg_cost /= testing_dataset.rows() as f64;
 
         avg_cost
+    }
+
+    pub fn save(&self, path: impl AsRef<Path>) -> Result<(), SaveErr> {
+        let encoded = bincode::serialize(&self)?;
+        std::fs::write(path, encoded)?;
+
+        Ok(())
     }
 
     /// Performs the feedforward algorithm on the given input slice,
@@ -210,6 +225,7 @@ pub trait Activation {
     fn derivative(x: f64) -> f64;
 }
 
+/// The sigmoid activation function.
 #[derive(Serialize, Deserialize)]
 pub struct Sigmoid;
 
@@ -221,4 +237,20 @@ impl Activation for Sigmoid {
     fn derivative(x: f64) -> f64 {
         x * (1.0 - x)
     }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum SaveErr {
+    #[error("failed to serialize network")]
+    Serialize(#[from] bincode::Error),
+    #[error("failed to write to file")]
+    FileWrite(#[from] std::io::Error),
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum LoadErr {
+    #[error("failed to deserialize network")]
+    Deserialize(#[from] bincode::Error),
+    #[error("failed to read from file")]
+    FileRead(#[from] std::io::Error),
 }

@@ -11,11 +11,12 @@ fn main() -> anyhow::Result<()> {
 
     let dataset = Dataset::from(data);
 
-    let mut brain = NeuralNet::new(&[2, 2, 1], Sigmoid);
+    let mut brain = NeuralNet::<Sigmoid>::new(&[2, 2, 1]);
     brain.train(dataset, 250_000, 0.01);
 
-    let encoded = bincode::serialize(&brain)?;
-    let _decoded: NeuralNet<Sigmoid> = bincode::deserialize(&encoded[..])?;
+    brain.save("brain.network")?;
+
+    let mut brain = NeuralNet::<Sigmoid>::from_file("brain.network")?;
 
     println!("Prediction: {:.2}", brain.guess(&[1.0, 1.0])[0]);
 
