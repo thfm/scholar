@@ -24,7 +24,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     ///
     /// // Creates a neural network with two input nodes,
     /// // a single hidden layer with two nodes, and one output node
-    /// let brain = NeuralNet::new(&[2, 2, 1], Sigmoid);
+    /// let brain: NeuralNet<Sigmoid> = NeuralNet::new(&[2, 2, 1]);
     /// ```
     ///
     /// # Panics
@@ -75,9 +75,10 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// use scholar::dataset::Dataset;
     /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// let dataset = Dataset::from_csv("iris.csv", false, 4);
+    /// // Error should be handled properly
+    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4).unwrap();
     ///
-    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], Sigmoid);
+    /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
     /// brain.train(dataset, 10_000, 0.01);
     /// ```
     pub fn train(&mut self, mut training_dataset: Dataset, iterations: u64, learning_rate: f64) {
@@ -112,14 +113,15 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// use scholar::dataset::Dataset;
     /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// let dataset = Dataset::from_csv("iris.csv", false, 4);
+    /// // Error should be handled properly
+    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4).unwrap();
     /// let (training_data, testing_data) = dataset.split(0.75);
     ///
-    /// let mut brain = NeuralNet::new(&[4, 10, 10, 1], Sigmoid);
+    /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
     /// brain.train(training_data, 10_000, 0.01);
     ///
     /// let avg_cost = brain.test(testing_data);
-    /// println!("Accuracy: {:.2}%", (1.0 - avg_cost) * 100);
+    /// println!("Accuracy: {:.2}%", (1.0 - avg_cost) * 100.0);
     /// ```
     pub fn test(&mut self, testing_dataset: Dataset) -> f64 {
         let mut avg_cost = 0.0;
@@ -152,7 +154,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// ```rust
     /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// let mut brain = NeuralNet::new(&[3, 10, 2], Sigmoid);
+    /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[3, 10, 2]);
     /// let result = brain.guess(&[1.0, 0.0, -0.5]);
     ///
     /// assert_eq!(result.len(), 2);
