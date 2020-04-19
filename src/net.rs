@@ -60,6 +60,17 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         }
     }
 
+    /// Creates a new network from a valid file.
+    ///
+    /// Files are valid only if they were created using [`NeuralNet::save()`](#method.save).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use scholar::net::{NeuralNet, Sigmoid};
+    ///
+    /// let brain: NeuralNet<Sigmoid> = NeuralNet::from_file("brain.network")?;
+    /// ```
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self, LoadErr> {
         let file = fs::File::open(path)?;
         let decoded: NeuralNet<A> = bincode::deserialize_from(file)?;
@@ -75,8 +86,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// use scholar::dataset::Dataset;
     /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// // Error should be handled properly
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4).unwrap();
+    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
     /// brain.train(dataset, 10_000, 0.01);
@@ -113,8 +123,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// use scholar::dataset::Dataset;
     /// use scholar::net::{NeuralNet, Sigmoid};
     ///
-    /// // Error should be handled properly
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4).unwrap();
+    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
     /// let (training_data, testing_data) = dataset.split(0.75);
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
@@ -139,6 +148,17 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         avg_cost
     }
 
+    /// Saves the network in a binary format to the specified path.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use scholar::net::{NeuralNet, Sigmoid};
+    ///
+    /// let brain: NeuralNet<Sigmoid> = NeuralNet::new(&[2, 2, 1]);
+    ///
+    /// brain.save("brain")?;
+    /// ```
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), SaveErr> {
         let encoded = bincode::serialize(&self)?;
         std::fs::write(path, encoded)?;
@@ -218,12 +238,14 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
 }
 
 /// An activation for a network, including a function and a 'derivative' function.
-///
-/// Note that the 'derivative' function assumes that the original function
-/// has already been applied to it's input (as this is always the case when
-/// used in the context of neural networks).
 pub trait Activation {
+    /// The activation function.
     fn activate(x: f64) -> f64;
+    /// The 'derivative' of the activaton function.
+    ///
+    /// Note that this assumes that the activation function has already
+    /// been applied to its input, as this is always the case when used
+    /// in the context of neural networks.
     fn derivative(x: f64) -> f64;
 }
 
@@ -241,18 +263,24 @@ impl Activation for Sigmoid {
     }
 }
 
+/// An enumeration over the possible errors when saving a network to a file.
 #[derive(thiserror::Error, Debug)]
 pub enum SaveErr {
+    /// When serializing the network fails.
     #[error("failed to serialize network")]
     Serialize(#[from] bincode::Error),
+    /// When writing to the file fails.
     #[error("failed to write to file")]
     FileWrite(#[from] std::io::Error),
 }
 
+/// An enumeration over the possible errors when loading a network from a file.
 #[derive(thiserror::Error, Debug)]
 pub enum LoadErr {
+    /// When deserializing the network fails.
     #[error("failed to deserialize network")]
     Deserialize(#[from] bincode::Error),
+    /// When reading from the file fails.
     #[error("failed to read from file")]
     FileRead(#[from] std::io::Error),
 }

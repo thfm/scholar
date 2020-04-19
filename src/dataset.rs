@@ -82,8 +82,7 @@ impl Dataset {
     ///
     /// ```rust
     /// use scholar::dataset::Dataset;
-    /// // Error should be handled properly
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4).unwrap();
+    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
     ///
     /// // Randomly allocates 75% of the original dataset to 'training_data',
     /// // and the rest to 'testing_data'
@@ -115,13 +114,16 @@ impl Dataset {
     }
 }
 
-/// A collection of the possible errors when parsing a dataset from a CSV.
+/// An enumeration over the possible errors when parsing a dataset from a CSV.
 #[derive(thiserror::Error, Debug)]
 pub enum ParseCsvError {
+    /// When reading from a file fails.
     #[error("failed to read file")]
     Read(#[from] std::io::Error),
+    /// When parsing a CSV fails.
     #[error("failed to parse CSV")]
     Parse(#[from] csv::Error),
+    /// When converting CSV values to floats fails.
     #[error("failed to convert value into float")]
     Convert(#[from] std::num::ParseFloatError),
 }
