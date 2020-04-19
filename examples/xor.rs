@@ -1,5 +1,4 @@
-use scholar::dataset::Dataset;
-use scholar::net::{NeuralNet, Sigmoid};
+use scholar::{Dataset, NeuralNet, Sigmoid};
 
 fn main() {
     let data = vec![

@@ -20,7 +20,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{NeuralNet, Sigmoid};
     ///
     /// // Creates a neural network with two input nodes,
     /// // a single hidden layer with two nodes, and one output node
@@ -67,7 +67,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{NeuralNet, Sigmoid};
     ///
     /// let brain: NeuralNet<Sigmoid> = NeuralNet::from_file("brain.network")?;
     /// ```
@@ -83,8 +83,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::dataset::Dataset;
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{Dataset, NeuralNet, Sigmoid};
     ///
     /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
     ///
@@ -120,8 +119,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::dataset::Dataset;
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{Dataset, NeuralNet, Sigmoid};
     ///
     /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
     /// let (training_data, testing_data) = dataset.split(0.75);
@@ -153,7 +151,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{NeuralNet, Sigmoid};
     ///
     /// let brain: NeuralNet<Sigmoid> = NeuralNet::new(&[2, 2, 1]);
     ///
@@ -172,7 +170,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::net::{NeuralNet, Sigmoid};
+    /// use scholar::{NeuralNet, Sigmoid};
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[3, 10, 2]);
     /// let result = brain.guess(&[1.0, 0.0, -0.5]);

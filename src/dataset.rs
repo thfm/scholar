@@ -16,7 +16,7 @@ impl Dataset {
     /// ```rust
     /// // Parses the first four columns of 'iris.csv' as inputs,
     /// // and the remaining columns as target outputs
-    /// let dataset = scholar::dataset::Dataset::from_csv("iris.csv", false, 4);
+    /// let dataset = scholar::Dataset::from_csv("iris.csv", false, 4);
     /// ```
     pub fn from_csv(
         file_path: impl AsRef<std::path::Path>,
@@ -63,7 +63,7 @@ impl Dataset {
     ///     (vec![1.0, 1.0], vec![0.0]),
     /// ];
     ///
-    /// let dataset = scholar::dataset::Dataset::from(data);
+    /// let dataset = scholar::Dataset::from(data);
     /// assert_eq!(dataset.rows(), 4);
     /// ```
     pub fn rows(&self) -> usize {
@@ -81,8 +81,7 @@ impl Dataset {
     /// # Examples
     ///
     /// ```rust
-    /// use scholar::dataset::Dataset;
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
+    /// let dataset = scholar::Dataset::from_csv("examples/iris.csv", false, 4)?;
     ///
     /// // Randomly allocates 75% of the original dataset to 'training_data',
     /// // and the rest to 'testing_data'
