@@ -87,7 +87,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// ```rust
     /// use scholar::{Dataset, NeuralNet, Sigmoid};
     ///
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
+    /// let dataset = Dataset::from_csv("iris.csv", false, 4)?;
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
     /// brain.train(dataset, 10_000, 0.01);
@@ -125,7 +125,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// ```rust
     /// use scholar::{Dataset, NeuralNet, Sigmoid};
     ///
-    /// let dataset = Dataset::from_csv("examples/iris.csv", false, 4)?;
+    /// let dataset = Dataset::from_csv("iris.csv", false, 4)?;
     /// let (training_data, testing_data) = dataset.split(0.75);
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
