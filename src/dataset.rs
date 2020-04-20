@@ -1,6 +1,9 @@
 use rand::seq::SliceRandom;
 
+// A tuple containing a vector of input values matched to a vector of
+// their expected output values
 type Row = (Vec<f64>, Vec<f64>);
+
 type Data = Vec<Row>;
 
 /// A collection of input vectors matched with their expected output.
@@ -11,6 +14,13 @@ pub struct Dataset {
 
 impl Dataset {
     /// Parses a dataset from a CSV file.
+    ///
+    /// # Arguments
+    ///
+    /// * `file_path` - The path to the CSV file
+    /// * `includes_headers` - Whether the CSV has a header row or not
+    /// * `num_inputs` - The number of columns in the CSV that are designated
+    /// as inputs (to a Machine Learning model)
     ///
     /// # Examples
     /// ```rust
@@ -33,6 +43,7 @@ impl Dataset {
         let data: Result<Data, ParseCsvError> = reader
             .records()
             .map(|row| {
+                // Catches a possible parsing error
                 let row = row?;
                 let row = row
                     .iter()
@@ -42,12 +53,51 @@ impl Dataset {
                     })
                     .collect::<Result<Vec<_>, _>>()?;
 
-                let mut input = row;
-                let output = input.split_off(num_inputs);
-                Ok((input, output))
+                let mut inputs = row;
+                // Splits the row into input and output vectors
+                let outputs = inputs.split_off(num_inputs);
+                Ok((inputs, outputs))
             })
             .collect();
         Ok(Dataset::from(data?))
+    }
+
+    /// Splits the dataset into two, with the size of each determined by
+    /// the given `train_portion`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let dataset = scholar::Dataset::from_csv("examples/iris.csv", false, 4)?;
+    ///
+    /// // Randomly allocates 75% of the original dataset to 'training_data',
+    /// // and the rest to 'testing_data'
+    /// let (training_data, testing_data) = dataset.split(0.75);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the given `train_portion` isn't between 0 and 1.
+    pub fn split(mut self, train_portion: f64) -> (Self, Self) {
+        if train_portion < 0.0 || train_portion > 1.0 {
+            panic!(
+                "training portion must be between 0 and 1 (found {})",
+                train_portion
+            );
+        }
+
+        // Shuffles the dataset to ensure a random split
+        self.shuffle();
+
+        let index = self.data.len() as f64 * train_portion;
+        let test_split = self.data.split_off(index.round() as usize);
+
+        (self, Self::from(test_split))
+    }
+
+    /// Shuffles the rows in the dataset.
+    pub(crate) fn shuffle(&mut self) {
+        self.data.shuffle(&mut rand::thread_rng());
     }
 
     /// Returns the number of rows in the dataset.
@@ -68,43 +118,6 @@ impl Dataset {
     /// ```
     pub fn rows(&self) -> usize {
         self.data.len()
-    }
-
-    /// Shuffles the rows in the dataset.
-    pub(crate) fn shuffle(&mut self) {
-        self.data.shuffle(&mut rand::thread_rng());
-    }
-
-    /// Splits the dataset into two, with the size of each determined by
-    /// the given `train_portion`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// let dataset = scholar::Dataset::from_csv("examples/iris.csv", false, 4)?;
-    ///
-    /// // Randomly allocates 75% of the original dataset to 'training_data',
-    /// // and the rest to 'testing_data'
-    /// let (training_data, testing_data) = dataset.split(0.75);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// This method panics if the given `train_portion` isn't between 0 and 1.
-    pub fn split(mut self, train_portion: f64) -> (Self, Self) {
-        if train_portion > 1.0 || train_portion < 0.0 {
-            panic!(
-                "training portion must be between 0 and 1 (found {})",
-                train_portion
-            );
-        }
-
-        self.shuffle();
-
-        let index = self.data.len() as f64 * train_portion;
-        let test_split = self.data.split_off(index.round() as usize);
-
-        (self, Self::from(test_split))
     }
 
     /// Returns a reference to the row at the specified index.

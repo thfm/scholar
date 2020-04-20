@@ -1,6 +1,8 @@
 use crate::dataset::Dataset;
-use crate::utils::{convert_slice_to_matrix, gen_random_matrix};
+use crate::utils::*;
+
 use nalgebra::DMatrix;
+
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{fs, marker::PhantomData, path::Path};
 
@@ -97,6 +99,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
                 .template("Training [{bar:30}] {percent:>3}% ETA: {eta}")
                 .progress_chars("=> "),
         );
+        // The progress bar is only updated every 100 iterations so as not to
+        // significantly impact the speed of training
         let percentile = iterations / 100;
 
         for i in 1..iterations {
@@ -134,6 +138,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         let mut avg_cost = 0.0;
         for (inputs, targets) in &testing_dataset {
             let guesses = self.guess(inputs);
+            // Iterates over each guess value, compares it to its target, and
+            // sums the costs
             let cost_sum: f64 = guesses
                 .iter()
                 .zip(targets)
@@ -159,7 +165,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// ```
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), SaveErr> {
         let encoded = bincode::serialize(&self)?;
-        std::fs::write(path, encoded)?;
+        fs::write(path, encoded)?;
 
         Ok(())
     }
@@ -184,6 +190,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// to the number of nodes in the network's input layer.
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
+        // The number of rows/values in the input layer of the network
         let num_input_layer_rows = self.layers[0].row_iter().len();
         if num_inputs != num_input_layer_rows {
             panic!(
@@ -193,17 +200,19 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         }
 
         let num_layers = self.layers.len();
+        // Stores the given inputs into the network's input layer
         self.layers[0] = convert_slice_to_matrix(inputs);
 
-        for i in 1..num_layers {
-            let mut value = &self.weights[i - 1] * &self.layers[i - 1];
-            value += &self.biases[i - 1];
+        for i in 0..num_layers - 1 {
+            let mut value = &self.weights[i] * &self.layers[i];
+            value += &self.biases[i];
 
             for x in value.iter_mut() {
                 *x = A::activate(*x);
             }
 
-            self.layers[i] = value;
+            // Feeds the value forward to the next layer
+            self.layers[i + 1] = value;
         }
 
         self.layers[num_layers - 1].iter().cloned().collect()
@@ -216,8 +225,10 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         let targets = convert_slice_to_matrix(targets);
 
         let num_layers = self.layers.len();
+        // Calculates and sets the value of the last error matrix
         self.errors[num_layers - 2] = targets - guesses;
 
+        // Iterates over each layer (except for the input layer) in reverse
         for (i, layer) in self.layers.iter().enumerate().skip(1).rev() {
             let mut gradients = layer.map(A::derivative);
             gradients.component_mul_assign(&self.errors[i - 1]);
@@ -228,6 +239,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
 
             self.biases[i - 1] += gradients;
 
+            // Calculates the errors for the next layer unless it is the last iteration
             if i != 1 {
                 self.errors[i - 2] = self.weights[i - 1].transpose() * &self.errors[i - 1];
             }
