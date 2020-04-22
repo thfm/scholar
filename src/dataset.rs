@@ -4,12 +4,10 @@ use rand::seq::SliceRandom;
 // their expected output values
 type Row = (Vec<f64>, Vec<f64>);
 
-type Data = Vec<Row>;
-
 /// A collection of input vectors matched with their expected output.
 #[derive(Debug)]
 pub struct Dataset {
-    data: Data,
+    data: Vec<Row>,
 }
 
 impl Dataset {
@@ -40,7 +38,7 @@ impl Dataset {
             .has_headers(includes_headers)
             .from_reader(file);
 
-        let data: Result<Data, ParseCsvError> = reader
+        let data: Result<Vec<Row>, ParseCsvError> = reader
             .records()
             .map(|row| {
                 // Catches a possible parsing error
@@ -140,8 +138,8 @@ pub enum ParseCsvError {
     Convert(#[from] std::num::ParseFloatError),
 }
 
-impl From<Data> for Dataset {
-    fn from(data: Data) -> Self {
+impl From<Vec<Row>> for Dataset {
+    fn from(data: Vec<Row>) -> Self {
         Self { data }
     }
 }
