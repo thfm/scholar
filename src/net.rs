@@ -99,7 +99,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
                 .template("Training [{bar:30}] {percent:>3}% ETA: {eta}")
                 .progress_chars("=> "),
         );
-        // The progress bar is only updated every 100 iterations so as not to
+
+        // The progress bar is only updated every percentage progressed so as not to
         // significantly impact the speed of training
         let percentile = iterations / 100;
 
