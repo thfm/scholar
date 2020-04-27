@@ -1,4 +1,4 @@
-//! A supervised machine learning library for Rust.
+//! A supervised machine learning library.
 #![warn(missing_docs)]
 mod dataset;
 mod net;
