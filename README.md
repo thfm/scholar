@@ -1,6 +1,6 @@
 # Scholar
 
-A supervised machine learning library for Rust.
+A supervised machine learning library.
 
 If you wish to use Scholar in your project, simply add the following to your `Cargo.toml` dependencies...
 
