@@ -1,29 +1,43 @@
 use rand::seq::SliceRandom;
 
-// A tuple containing a vector of input values matched to a vector of
-// their expected output values
+/// A tuple containing a vector of input values matched to a vector of their expected output values
 type Row = (Vec<f64>, Vec<f64>);
 
 /// A collection of input vectors matched with their expected output.
+///
+/// You can construct a `Dataset` manually like so:
+///
+/// ```rust
+/// // Note that the inputs and target outputs are both vectors, even though the latter has just
+/// // one element
+/// let data = vec![
+///     (vec![0.0, 0.0], vec![0.0]),
+///     (vec![0.0, 1.0], vec![1.0]),
+///     (vec![1.0, 0.0], vec![1.0]),
+///     (vec![1.0, 1.0], vec![0.0]),
+/// ];
+///
+/// let dataset = scholar::Dataset::from(data);
+/// ```
 #[derive(Debug)]
 pub struct Dataset {
     data: Vec<Row>,
 }
 
 impl Dataset {
-    /// Parses a dataset from a CSV file.
+    /// Parses a `Dataset` from a CSV file.
     ///
     /// # Arguments
     ///
     /// * `file_path` - The path to the CSV file
     /// * `includes_headers` - Whether the CSV has a header row or not
-    /// * `num_inputs` - The number of columns in the CSV that are designated
-    /// as inputs (to a Machine Learning model)
+    /// * `num_inputs` - The number of columns in the CSV that are designated as inputs (to a
+    /// Machine Learning model)
     ///
     /// # Examples
     /// ```rust
-    /// // Parses the first four columns of 'iris.csv' as inputs,
-    /// // and the remaining columns as target outputs
+    /// // Parses the first four columns of 'iris.csv' as inputs, and the remaining columns as
+    /// // target outputs
     /// let dataset = scholar::Dataset::from_csv("iris.csv", false, 4);
     /// ```
     pub fn from_csv(
@@ -60,16 +74,16 @@ impl Dataset {
         Ok(Dataset::from(data?))
     }
 
-    /// Splits the dataset into two, with the size of each determined by
-    /// the given `train_portion`.
+    /// Splits the dataset into two, with the size of each determined by the given `train_portion`.
+    /// This is useful for separating it into training and testing segments.
     ///
     /// # Examples
     ///
     /// ```rust
     /// let dataset = scholar::Dataset::from_csv("iris.csv", false, 4)?;
     ///
-    /// // Randomly allocates 75% of the original dataset to 'training_data',
-    /// // and the rest to 'testing_data'
+    /// // Randomly allocates 75% of the original dataset to `training_data`, and the rest
+    /// // to `testing_data`
     /// let (training_data, testing_data) = dataset.split(0.75);
     /// ```
     ///
@@ -124,7 +138,7 @@ impl Dataset {
     }
 }
 
-/// An enumeration over the possible errors when parsing a dataset from a CSV.
+/// An enumeration over the possible errors when parsing a `Dataset` from a CSV.
 #[derive(thiserror::Error, Debug)]
 pub enum ParseCsvError {
     /// When reading from a file fails.

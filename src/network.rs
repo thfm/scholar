@@ -17,23 +17,25 @@ pub struct NeuralNet<A: Activation> {
 }
 
 impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
-    /// Creates a new network with the given node configuration and activation.
+    /// Creates a new `NeuralNet` with the given node configuration.
+    ///
+    /// Note that you must supply a type annotation so that it knows which
+    /// [`Activation`](#trait.Activation) to use.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use scholar::{NeuralNet, Sigmoid};
     ///
-    /// // Creates a neural network with two input nodes,
-    /// // a single hidden layer with two nodes, and one output node
+    /// // Creates a neural network with two input nodes, a single hidden layer with two nodes,
+    /// // and one output node
     /// let brain: NeuralNet<Sigmoid> = NeuralNet::new(&[2, 2, 1]);
     /// ```
     ///
     /// # Panics
     ///
-    /// This function panics if the number of layers
-    /// (i.e. the length of the given `node_counts` slice)
-    /// is less than 2.
+    /// This function panics if the number of layers (i.e. the length of the given `node_counts`
+    /// slice) is less than 2.
     pub fn new(node_counts: &[usize]) -> Self {
         let num_layers = node_counts.len();
         if num_layers < 2 {
@@ -62,9 +64,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         }
     }
 
-    /// Creates a new network from a valid file.
-    ///
-    /// Files are valid only if they were created using [`NeuralNet::save()`](#method.save).
+    /// Creates a new `NeuralNet` from a valid file (those created using
+    /// [`NeuralNet::save()`](#method.save)).
     ///
     /// # Examples
     ///
@@ -80,7 +81,7 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         Ok(decoded)
     }
 
-    /// Trains the network on the given dataset for the given number of iterations.
+    /// Trains the network on the given `Dataset` for the given number of `iterations`.
     ///
     /// # Examples
     ///
@@ -90,6 +91,9 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     /// let dataset = Dataset::from_csv("iris.csv", false, 4)?;
     ///
     /// let mut brain: NeuralNet<Sigmoid> = NeuralNet::new(&[4, 10, 10, 1]);
+    ///
+    /// // Trains the network by iterating over the entire dataset 10,000 times. The last parameter
+    /// // (the 'learning rate') dictates how quickly the network 'adapts to the dataset'
     /// brain.train(dataset, 10_000, 0.01);
     /// ```
     pub fn train(&mut self, mut training_dataset: Dataset, iterations: u64, learning_rate: f64) {
@@ -100,8 +104,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
                 .progress_chars("=> "),
         );
 
-        // The progress bar is only updated every percentage progressed so as not to
-        // significantly impact the speed of training
+        // The progress bar is only updated every percentage progressed so as not to significantly
+        // impact the speed of training
         let percentile = iterations / 100;
 
         for i in 1..iterations {
@@ -162,7 +166,9 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     ///
     /// let brain: NeuralNet<Sigmoid> = NeuralNet::new(&[2, 2, 1]);
     ///
-    /// brain.save("brain")?;
+    /// // Note that the file doesn't have to use the '.network' extension; you can actually
+    /// // choose anything you wish!
+    /// brain.save("brain.network")?;
     /// ```
     pub fn save(&self, path: impl AsRef<Path>) -> Result<(), SaveErr> {
         let encoded = bincode::serialize(&self)?;
@@ -171,8 +177,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         Ok(())
     }
 
-    /// Performs the feedforward algorithm on the given input slice,
-    /// and returns the value of the output layer as a vector.
+    /// Performs the feedforward algorithm on the given input slice, returning the value of the
+    /// output layer as a vector.
     ///
     /// # Examples
     ///
@@ -187,8 +193,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     ///
     /// # Panics
     ///
-    /// This method panics if the number of given input values is not equal
-    /// to the number of nodes in the network's input layer.
+    /// This method panics if the number of given input values is not equal to the number of nodes
+    /// in the network's input layer.
     pub fn guess(&mut self, inputs: &[f64]) -> Vec<f64> {
         let num_inputs = inputs.len();
         // The number of rows/values in the input layer of the network
@@ -219,8 +225,8 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
         self.layers[num_layers - 1].iter().cloned().collect()
     }
 
-    /// Performs the backpropagation algorithm using the network's guessed values
-    /// for a particular input, and the real target values.
+    /// Performs the backpropagation algorithm using the network's guessed values for a particular
+    /// input, and the real target values.
     fn backpropagate(&mut self, guesses: &[f64], targets: &[f64], learning_rate: f64) {
         let guesses = convert_slice_to_matrix(guesses);
         let targets = convert_slice_to_matrix(targets);
@@ -248,19 +254,72 @@ impl<A: Activation + Serialize + DeserializeOwned> NeuralNet<A> {
     }
 }
 
-/// An activation for a network, including a function and a 'derivative' function.
+/// An activation for a `NeuralNet`, including a function and a 'derivative' function.
+///
+/// # Examples
+///
+/// The code below shows how to implement the
+/// [ReLU activation](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)):
+///
+/// ```rust
+/// use serde::{Serialize, Deserialize};
+///
+/// // The activation must be serializable and deserializable so that the network can be
+/// // saved/loaded to/from files
+/// #[derive(Serialize, Deserialize)]
+/// struct Relu;
+///
+/// impl scholar::Activation for Relu {
+///     fn activate(x: f64) -> f64 {
+///         x.max(0.0)
+///     }
+///
+///     fn derivative(x: f64) -> f64 {
+///         if x > 0.0 {
+///             1.0
+///         } else {
+///             0.0
+///         }
+///     }
+/// }
+/// ```
 pub trait Activation {
     /// The activation function.
     fn activate(x: f64) -> f64;
-    /// The 'derivative' of the activaton function.
+    /// The 'derivative' of the activation function.
     ///
-    /// Note that this assumes that the activation function has already
-    /// been applied to its input, as this is always the case when used
-    /// in the context of neural networks.
+    /// There is a small quirk regarding this function that occurs when it
+    /// 'references' the `activate` function of the same trait implementation.
+    /// For example, the real derivative of the sigmoid (σ) function is:
+    ///
+    /// ```
+    /// σ(x) * (1 - σ(x))
+    /// ```
+    ///
+    /// When implementing this in code for a `NeuralNet`, however, you can simply remove these
+    /// 'references'. This is because in the context of neural networks the activation's regular
+    /// function will have always been applied to the input of its derivative function, no matter
+    /// the circumstances. The derivative of sigmoid thus becomes:
+    ///
+    /// ```
+    /// x * (1 - x)
+    /// ```
+    ///
+    /// which matches what the real implementation looks like:
+    ///
+    /// ```rust
+    /// impl Activation for Sigmoid {
+    ///     ...
+    ///
+    ///     fn derivative(x: f64) -> f64 {
+    ///         x * (1.0 - x)
+    ///     }
+    /// }
+    /// ```
     fn derivative(x: f64) -> f64;
 }
 
-/// The sigmoid activation function.
+/// The sigmoid activation.
 #[derive(Serialize, Deserialize)]
 pub struct Sigmoid;
 
